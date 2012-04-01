@@ -9,6 +9,7 @@
 
 
 #define _XOPEN_SOURCE 500
+#include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -25,6 +26,8 @@
 
 
 static int disk_fd = -1;
+
+static off_t global_offset = (off_t)0;
 
 
 static int pread_wrapper(int disk_fd, void *p, size_t size, off_t where)
@@ -80,19 +83,25 @@ static int pread_wrapper(int disk_fd, void *p, size_t size, off_t where)
 
     return ret + size;
 #else
-    return pread(disk_fd, p, size, where);
+    return pread(disk_fd, p, size, where + global_offset);
 #endif
 }
 
-int disk_open(const char *path)
+
+int disk_open(const char* path, long offset)
 {
     disk_fd = open(path, O_RDONLY);
+    global_offset = offset;
     if (disk_fd < 0) {
         return -errno;
+    } 
+    // this doesn't seem to have ANY effect
+    if (lseek(disk_fd, offset, SEEK_SET) == -1) {
+        return -errno;
     }
-
-    return 0;
+    return 0; 
 }
+
 
 int __disk_read(off_t where, size_t size, void *p, const char *func, int line)
 {

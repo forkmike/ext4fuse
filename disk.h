@@ -14,7 +14,7 @@ struct disk_ctx {
     size_t size;            /* How much to read */
 };
 
-int disk_open(const char *path);
+int disk_open(const char *path, long offset);
 int __disk_read(off_t where, size_t size, void *p, const char *func, int line);
 
 int disk_ctx_create(struct disk_ctx *ctx, off_t where, size_t size, uint32_t len);

@@ -10,7 +10,7 @@
  *      - http://fuse.sourceforge.net/helloworld.html
  */
 
-
+#define FUSE_USE_VERSION 26
 #include <fuse.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -56,10 +56,18 @@ void signal_handle_sigsegv(int signal)
     abort();
 }
 
+void print_usage(char* self)
+{
+    fprintf(stderr, "Usage: %s fs mountpoint [-l logfile] [-o offset/bytes]\n", self);
+}
+
 int main(int argc, char *argv[])
 {
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s fs mountpoint\n", argv[0]);
+    char* logfilep = DEFAULT_LOG_FILE;
+    long offset = 0;
+
+    if (argc < 3 || argc > 7) {
+        print_usage(argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -68,12 +76,28 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (logging_open(argc == 4 ? argv[3] : DEFAULT_LOG_FILE) < 0) {
+    if (argc > 3 && (argc == 5 || argc == 7)) {
+        if (argv[3][1] == 'l') {
+            logfilep = argv[4];
+        } else if (argc == 7 && argv[5][1] == 'l') {
+            logfilep = argv[6];
+        }
+        if (argv[3][1] == 'o') {
+            offset = atol(argv[4]);
+        } else if (argc == 7 && argv[5][1] == 'o') {
+            offset = atol(argv[6]);
+        }
+    } else {
+        print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    if (logging_open(logfilep) < 0) {
         fprintf(stderr, "Failed to initialize logging\n");
         return EXIT_FAILURE;
     }
 
-    if (disk_open(argv[1]) < 0) {
+    if (disk_open(argv[1], offset) < 0) {
         perror("disk_open");
         return EXIT_FAILURE;
     }
