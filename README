@@ -17,6 +17,10 @@ You can also drop a mail.  I'd like to know if someone else is using this
 besides me.
   * gerard.lledo@gmail.com
 
+=== notes about fork ===
+
+So this fork is an ugly hack to mount a "partition" in a full disk dump
+
 === Usage ===
 Compile using "make".  You can mount a filesystem like this:
 $ ./ext4fuse /dev/disk0s5 mountpoint [optional-logfile]
